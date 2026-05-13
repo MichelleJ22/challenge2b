@@ -60,7 +60,7 @@ pipeline {
                           --region ${AWS_REGION} \
                           --kubeconfig ${KUBECONFIG}
 
-                        helm upgrade --install webapp ./Helm \
+                        helm upgrade --install webapp ./helm \
                           --namespace default \
                           --set image.repository=${ECR_REPO} \
                           --set image.tag=${IMAGE_TAG} \
