@@ -3,14 +3,16 @@ kind: Deployment
 metadata:
   name: webapp
 spec:
-  replicas: 1
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
       app: webapp
+
   template:
     metadata:
       labels:
         app: webapp
+
     spec:
       affinity:
         podAntiAffinity:
@@ -24,16 +26,21 @@ spec:
                       values:
                         - webapp
                 topologyKey: kubernetes.io/hostname
+
       containers:
         - name: webapp
-          image: 113892881104.dkr.ecr.us-east-2.amazonaws.com/hello-flask:latest
-          imagePullPolicy: Always
+
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+
           ports:
-            - containerPort: 5000
+            - containerPort: {{ .Values.service.targetPort }}
+
           resources:
             requests:
-              cpu: "100m"
-              memory: "128Mi"
+              cpu: {{ .Values.resources.requests.cpu }}
+              memory: {{ .Values.resources.requests.memory }}
+
             limits:
-              cpu: "500m"
-              memory: "512Mi"
+              cpu: {{ .Values.resources.limits.cpu }}
+              memory: {{ .Values.resources.limits.memory }}
