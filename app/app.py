@@ -4,7 +4,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def hello():
-    return "GitOps deployment successful from GitHub Actions and Argo CD!"
+    return "Webhook test successful — GitHub Actions and Argo CD deployed this!"
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
