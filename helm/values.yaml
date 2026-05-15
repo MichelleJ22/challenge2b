@@ -7,7 +7,7 @@ replicaCount: 1
 image:
   repository: 113892881104.dkr.ecr.us-east-2.amazonaws.com/hello-flask
   pullPolicy: IfNotPresent
-  tag: "e032e1e088b00bdccaf3dbabf869c3cd2948fe8c"
+  tag: "dcd3278186c768639a43e3ef71f6d2c901515d7b"
 
 imagePullSecrets: []
 nameOverride: ""
