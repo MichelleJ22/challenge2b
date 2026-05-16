@@ -1,61 +1,52 @@
-5.	name: Build Push and Update Helm
-6.	
-7.	on:
-8.	  push:
-9.	    branches:
-10.	      - gitops
-11.	
-12.	permissions:
-13.	  id-token: write
-14.	  contents: write
-15.	
-16.	env:
-17.	  AWS_REGION: us-east-2
-18.	  AWS_ACCOUNT_ID: "113892881104"
-19.	  ECR_REPOSITORY: hello-flask
-20.	  HELM_VALUES_FILE: helm/values.yaml
-21.	
-22.	jobs:
-23.	  build-push-update-helm:
-24.	    runs-on: ubuntu-latest
-25.	
-26.	    steps:
-27.	      - name: Checkout gitops branch
-28.	        uses: actions/checkout@v4
-29.	        with:
-30.	          ref: gitops
-31.	          token: ${{ secrets.GITHUB_TOKEN }}
-32.	
-33.	      - name: Configure AWS credentials with OIDC
-34.	        uses: aws-actions/configure-aws-credentials@v4
-35.	        with:
-36.	          role-to-assume: arn:aws:iam::113892881104:role/challenge1
-37.	          aws-region: ${{ env.AWS_REGION }}
-38.	
-39.	      - name: Login to Amazon ECR
-40.	        uses: aws-actions/amazon-ecr-login@v2
-41.	
-42.	      - name: Build and push Docker image
-43.	        env:
-44.	          IMAGE_TAG: ${{ github.sha }}
-45.	          ECR_REGISTRY: ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
-46.	        run: |
-47.	          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./app
-48.	          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-49.	
-50.	      - name: Update Helm values image tag
-51.	        env:
-52.	          IMAGE_TAG: ${{ github.sha }}
-53.	          ECR_REGISTRY: ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
-54.	        run: |
-55.	          sed -i "s|repository:.*|repository: $ECR_REGISTRY/$ECR_REPOSITORY|" $HELM_VALUES_FILE
-56.	          sed -i "s|tag:.*|tag: \"$IMAGE_TAG\"|" $HELM_VALUES_FILE
-57.	
-58.	      - name: Commit and push Helm values update
-59.	        run: |
-60.	          git config user.name "github-actions"
-61.	          git config user.email "github-actions@github.com"
-62.	
-63.	          git add $HELM_VALUES_FILE
-64.	          git commit -m "Update Helm image tag to ${{ github.sha }}" || echo "No changes to commit"
-65.	          git push origin gitops
+name: Build Push and Update Helm
+
+on:
+  push:
+    branches:
+      - gitops
+
+permissions:
+  id-token: write
+  contents: write
+
+env:
+  AWS_REGION: us-east-2
+  AWS_ACCOUNT_ID: "113892881104"
+  ECR_REPOSITORY: hello-flask
+  HELM_VALUES_FILE: helm/values.yaml
+
+jobs:
+  build-push-update-helm:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout gitops branch
+        uses: actions/checkout@v4
+        with:
+          ref: gitops
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure AWS credentials with OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::113892881104:role/challenge1
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push Docker image
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+          ECR_REGISTRY: ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./app
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+      - name: Update Helm values image tag
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+          ECR_REGISTRY: ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
+        run: |
+          sed -i "s|repository:.*|repository: $ECR_REGISTRY/$ECR_REPOSITORY|" $HELM_VALUES_FILE
+          sed -i "s|tag:.*|tag: \"$IMAGE_TAG\"|" $HELM_VALUES_FILE
